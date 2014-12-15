@@ -1,0 +1,39 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<head>
+    <title>My jQuery Page</title>
+    <script src="jquery-2.1.1.js"></script>
+    <script src="handlebars-v2.0.0.js"></script>
+</head>
+<body>
+
+</body>
+
+<script id="chat-template" type="text/x-handlebars-template">
+  <div class="chat" id="{{id}}">
+    <h4>{{ u }}</h4>
+    <p>{{ m }}</p>
+  </div>
+</script>
+
+<script>
+  $.ajax({
+  type: 'GET',
+  url: 'http://chat.api.mks.io/chats'
+  }).success(function (chats) {
+    console.log("Got chats:", chats)
+  
+    var source = $("#chat-template").html();
+
+    var template = Handlebars.compile(source);
+    chats.forEach(function(item){
+      var myNewHTML = template({
+        id : item.id,
+        u: item.user,
+        m: item.message
+      });
+
+      $('body').append(myNewHTML);
+    });
+  })
+</script>
