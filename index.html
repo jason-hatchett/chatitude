@@ -6,22 +6,51 @@
     <script src="handlebars-v2.0.0.js"></script>
 </head>
 <body>
-
+  <div id="entryway">
+  </div>
+  <div id="chat-holder"></div>
 </body>
+
+<script id="gather-info-template" type="text/x-handlebars-template">
+  <div id="information">
+    <button id="signup">Sign Up</button>
+    <form class="signup-form" action="/signup">
+      Username: <input type="text" name="username">
+      Password: <input type="text" name="password">
+      <input id="submit-signup" type="button" value="Submit">
+    </form>
+    <button id="signin">Sign In</button>
+    <form class="signin-form" action="/signin">
+      Username: <input type="text" name="username">
+      Password: <input type="text" name="password">
+      <input id="submit-signin" type="button" value="Submit">
+    </form>
+  </div>
+</script>
 
 <script id="chat-template" type="text/x-handlebars-template">
   <div class="chat" id="{{id}}">
-    <h4>{{ u }}</h4>
-    <p>{{ m }}</p>
+    <h4>{{ u }}: </h4>{{ m }}
+  </div>
+</script>
+
+<script id="user-info-template" type="text/x-handlebars-template">
+  <div class="user" id="{{id}}">
+    <ul>"You are logged in as {{ u }}."</ul>
+    <ul><button id="logout">Log Out</button></ul>
   </div>
 </script>
 
 <script>
+
+
+
+function getChats(){
   $.ajax({
   type: 'GET',
   url: 'http://chat.api.mks.io/chats'
   }).success(function (chats) {
-    console.log("Got chats:", chats)
+    //console.log("Got chats:", chats)
   
     var source = $("#chat-template").html();
 
@@ -32,8 +61,87 @@
         u: item.user,
         m: item.message
       });
-
-      $('body').append(myNewHTML);
+      if ($('.chat#' + item.id).length == 0){
+        $('#chat-holder').append(myNewHTML);
+      }
     });
+      
   })
+}
+
+function loadForms(){
+  var source = $("#gather-info-template").html();
+  $('#entryway').append(source);
+ 
+}
+
+function signIn(username, password){
+  $.ajax({
+  type: 'POST',
+  url: 'http://chat.api.mks.io/signin',
+  data:{'username' : username, 'password':password}
+  }).success(function (result) {
+    var source = $("#user-info-template").html();
+
+    var template = Handlebars.compile(source);
+    
+    var myNewHTML = template({
+        id : result["apiToken"],
+        u: username,
+    });
+    $('#entryway').empty();
+    $('#entryway').append(myNewHTML);
+  });
+}
+
+function signUp(username, password){
+  console.log(username)
+  $.ajax({
+  type: 'POST',
+  url: 'http://chat.api.mks.io/signup',
+  data:{'username' : username, 'password':password}
+  }).success(function () {
+     $( "form.signup-form" ).hide()
+  });
+}
+
+$(document).ready(function() {
+  loadForms()
+  $( ".signup-form" ).hide()
+  $( ".signin-form" ).hide()
+  setInterval(getChats, 1000);
+});
+
+$(document).on('click', '#submit-signup', function() {
+console.log('signup')
+ signUp($('.signup-form input:eq(0)').val(),
+  $('.signup-form input:eq(1)').val())
+
+});
+
+
+$(document).on('click', '#submit-signin', function() {
+
+ signIn($('.signin-form input:eq(0)').val(),
+  $('.signin-form input:eq(1)').val())
+
+});
+
+
+$(document).on('click', '#signup', function() {
+  $( "form.signup-form" ).show()
+  $('#signup').hide()
+});
+
+$(document).on('click', '#signin', function() {
+  $( "form.signin-form" ).show()
+  $('#signin').hide()
+});
+
+$(document).on('click', '#logout', function() {
+  $( "form.signin-form" ).show()
+  $('#signin').hide()
+});
+
+
 </script>
