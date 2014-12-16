@@ -30,7 +30,7 @@
 
 <script id="chat-template" type="text/x-handlebars-template">
   <div class="chat" id="{{id}}">
-    <h4>{{ u }}: </h4>{{ m }}
+    <h4>{{ u }}: </h4><ul>{{ m }}</ul>
   </div>
 </script>
 
@@ -50,6 +50,7 @@
 </script>
 
 <script>
+var my_user;
 
 function enterMessage(new_message){
   $.ajax({
@@ -76,18 +77,41 @@ function getChats(){
         u: item.user,
         m: item.message
       });
+      
       if ($('.chat#' + item.id).length == 0){
         $('#chat-holder').prepend(myNewHTML);
+        
+        if (checkURL(item.message)){
+          $img = $("<img>")
+          $img.attr("src", item.message)
+          $('.chat#' + item.id).find("ul").remove()
+          $('.chat#' + item.id).append($img)
+        }
+
+        if (item.user == my_user){
+          $('.chat#' + item.id + ' h4').css('color', 'blue');
+        }
+
       }
     });
       
   })
+  //highlight all items with username
 }
 
 function loadForms(){
   var source = $("#gather-info-template").html();
   $('#entryway').append(source);
  
+}
+
+function highlight(color){
+  $( '.chat h4' ).each(function( t) {
+      var len = $(this).text().length
+      if ($(this).text().substr(0,len-2) == my_user){
+        $(this).css('color', color.toString());
+      }
+  });
 }
 
 function signIn(username, password){
@@ -102,8 +126,10 @@ function signIn(username, password){
     
     var myNewHTML = template({
         id : result["apiToken"],
-        u: username,
+        u: username
     });
+    my_user = username;
+    highlight('blue');
     $('#entryway').empty();
     $('#entryway').prepend(myNewHTML);
 
@@ -113,7 +139,6 @@ function signIn(username, password){
 }
 
 function signUp(username, password){
-  console.log(username)
   $.ajax({
   type: 'POST',
   url: 'http://chat.api.mks.io/signup',
@@ -121,13 +146,19 @@ function signUp(username, password){
   }).success(function () {
      $( "form.signup-form" ).hide()
   });
+
+}
+
+function checkURL(url) {
+    return(url.match(/\.(jpeg|jpg|gif|png)$/) != null);
 }
 
 $(document).ready(function() {
   loadForms()
   $( ".signup-form" ).hide()
   $( ".signin-form" ).hide()
-  setInterval(getChats, 1000);
+  getChats()
+  setInterval(getChats, 5000);
 });
 
 $(document).on('click', '#send-message', function() {
@@ -137,13 +168,13 @@ $(document).on('click', '#send-message', function() {
 
 $(document).on('click', '#submit-signup', function() {
  signUp($('.signup-form input:eq(0)').val(),
-  $('.signup-form input:eq(1)').val())
+  $('.signup-form input:eq(1)').val());
 });
 
 
 $(document).on('click', '#submit-signin', function() {
- signIn($('.signin-form input:eq(0)').val(),
-  $('.signin-form input:eq(1)').val())
+  signIn($('.signin-form input:eq(0)').val(),
+  $('.signin-form input:eq(1)').val());
 });
 
 
@@ -155,14 +186,17 @@ $(document).on('click', '#signup', function() {
 $(document).on('click', '#signin', function() {
   $( "form.signin-form" ).show()
   $('#signin').hide()
+
 });
 
 $(document).on('click', '#logout', function() {
+  highlight('black');
+  my_user = null;
   $('#entryway').empty();
   $('#chat-input').empty();
+  loadForms()
   $( ".signup-form" ).hide()
   $( ".signin-form" ).hide()
-  loadForms()
 });
 
 
