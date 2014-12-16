@@ -6,8 +6,8 @@
     <script src="handlebars-v2.0.0.js"></script>
 </head>
 <body>
-  <div id="entryway">
-  </div>
+  <div id="entryway"></div>
+  <div id="chat-input"></div>
   <div id="chat-holder"></div>
 </body>
 
@@ -34,6 +34,14 @@
   </div>
 </script>
 
+<script id="chat-textbox" type="text/x-handlebars-template">
+  <div class="new-message">
+    <h5>New Message:</h5>
+    <input type="text" size="50" >
+    <button id="send-message">Send Message</button>
+  </div>
+</script>
+
 <script id="user-info-template" type="text/x-handlebars-template">
   <div class="user" id="{{id}}">
     <ul>"You are logged in as {{ u }}."</ul>
@@ -43,7 +51,14 @@
 
 <script>
 
-
+function enterMessage(new_message){
+  $.ajax({
+  type: 'POST',
+  url: 'http://chat.api.mks.io/chats',
+  data:{'apiToken' : $('.user').attr('id'), 'message': new_message}
+  }).success(function () {
+  });
+}
 
 function getChats(){
   $.ajax({
@@ -62,7 +77,7 @@ function getChats(){
         m: item.message
       });
       if ($('.chat#' + item.id).length == 0){
-        $('#chat-holder').append(myNewHTML);
+        $('#chat-holder').prepend(myNewHTML);
       }
     });
       
@@ -90,7 +105,10 @@ function signIn(username, password){
         u: username,
     });
     $('#entryway').empty();
-    $('#entryway').append(myNewHTML);
+    $('#entryway').prepend(myNewHTML);
+
+    var addme = $("#chat-textbox").html();
+    $('#chat-input').append(addme);    
   });
 }
 
@@ -112,19 +130,20 @@ $(document).ready(function() {
   setInterval(getChats, 1000);
 });
 
+$(document).on('click', '#send-message', function() {
+  enterMessage($('.new-message input').val())
+  $('.new-message input').val("")
+});
+
 $(document).on('click', '#submit-signup', function() {
-console.log('signup')
  signUp($('.signup-form input:eq(0)').val(),
   $('.signup-form input:eq(1)').val())
-
 });
 
 
 $(document).on('click', '#submit-signin', function() {
-
  signIn($('.signin-form input:eq(0)').val(),
   $('.signin-form input:eq(1)').val())
-
 });
 
 
@@ -139,8 +158,11 @@ $(document).on('click', '#signin', function() {
 });
 
 $(document).on('click', '#logout', function() {
-  $( "form.signin-form" ).show()
-  $('#signin').hide()
+  $('#entryway').empty();
+  $('#chat-input').empty();
+  $( ".signup-form" ).hide()
+  $( ".signin-form" ).hide()
+  loadForms()
 });
 
 
