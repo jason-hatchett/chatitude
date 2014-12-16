@@ -1,51 +1,59 @@
 <!-- index.html -->
 <!DOCTYPE html>
 <head>
-    <title>My jQuery Page</title>
+    <title>Chatitude</title>
     <script src="jquery-2.1.1.js"></script>
     <script src="handlebars-v2.0.0.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-  <div id="entryway"></div>
-  <div id="chat-input"></div>
-  <div id="chat-holder"></div>
+  <div class="container theme-showcase">
+    <div class="page-header"><h2>Chatitude</h2><div id="entryway"></div></div>
+    <div id="chat-input"></div>
+    <div id="chat-holder"></div>
+  </div>
 </body>
 
 <script id="gather-info-template" type="text/x-handlebars-template">
   <div id="information">
-    <button id="signup">Sign Up</button>
+    <button class = "btn btn-primary" id="signup">Sign Up</button>
     <form class="signup-form" action="/signup">
       Username: <input type="text" name="username">
       Password: <input type="text" name="password">
-      <input id="submit-signup" type="button" value="Submit">
+      <input class = "btn btn-primary" id="submit-signup" type="button" value="Submit">
     </form>
-    <button id="signin">Sign In</button>
+    <button class = "btn btn-primary" id="signin">Sign In</button>
     <form class="signin-form" action="/signin">
       Username: <input type="text" name="username">
       Password: <input type="text" name="password">
-      <input id="submit-signin" type="button" value="Submit">
+      <input class = "btn btn-primary" id="submit-signin" type="button" value="Submit">
     </form>
   </div>
 </script>
 
 <script id="chat-template" type="text/x-handlebars-template">
-  <div class="chat" id="{{id}}">
-    <h4>{{ u }}: </h4><ul>{{ m }}</ul>
+  <div class="panel panel-info" id="{{id}}">
+    <div class="panel-heading"><h4>{{ u }}: </h4></div>
+    <div class="panel-body"><ul>{{ m }}</ul></div>
   </div>
 </script>
 
 <script id="chat-textbox" type="text/x-handlebars-template">
-  <div class="new-message">
-    <h5>New Message:</h5>
-    <input type="text" size="50" >
-    <button id="send-message">Send Message</button>
+  <div class="panel panel-success" id = "new-message">
+    <div class="panel-heading"><h5>New Message:</h5></div>
+    <div class="panel-body"><input type="text" size="50" >
+    <button class = "btn btn-primary" id="send-message">Send Message</button></div>
   </div>
 </script>
 
 <script id="user-info-template" type="text/x-handlebars-template">
-  <div class="user" id="{{id}}">
-    <ul>"You are logged in as {{ u }}."</ul>
-    <ul><button id="logout">Log Out</button></ul>
+  <div class="panel panel-default" id="{{id}}">
+    <div class="panel-heading">"{{ u }}"</div>
+    <div class="panel-body"><button class = "btn btn-primary" id="logout">Log Out</button></div>
   </div>
 </script>
 
@@ -56,7 +64,7 @@ function enterMessage(new_message){
   $.ajax({
   type: 'POST',
   url: 'http://chat.api.mks.io/chats',
-  data:{'apiToken' : $('.user').attr('id'), 'message': new_message}
+  data:{'apiToken' : $('.panel.panel-default').attr('id'), 'message': new_message}
   }).success(function () {
   });
 }
@@ -78,18 +86,18 @@ function getChats(){
         m: item.message
       });
       
-      if ($('.chat#' + item.id).length == 0){
+      if ($('.panel.panel-info#' + item.id).length == 0){
         $('#chat-holder').prepend(myNewHTML);
         
         if (checkURL(item.message)){
           $img = $("<img>")
           $img.attr("src", item.message)
-          $('.chat#' + item.id).find("ul").remove()
-          $('.chat#' + item.id).append($img)
+          $('.panel.panel-info#' + item.id).find('.panel-body').find("ul").remove()
+          $('.panel.panel-info#' + item.id).find('.panel-body').append($img)
         }
 
         if (item.user == my_user){
-          $('.chat#' + item.id + ' h4').css('color', 'blue');
+          $('.panel.panel-info#' + item.id + ' h4').css('color', 'red');
         }
 
       }
@@ -106,7 +114,7 @@ function loadForms(){
 }
 
 function highlight(color){
-  $( '.chat h4' ).each(function( t) {
+  $( '.panel.panel-info h4' ).each(function( t) {
       var len = $(this).text().length
       if ($(this).text().substr(0,len-2) == my_user){
         $(this).css('color', color.toString());
@@ -129,7 +137,7 @@ function signIn(username, password){
         u: username
     });
     my_user = username;
-    highlight('blue');
+    highlight('red');
     $('#entryway').empty();
     $('#entryway').prepend(myNewHTML);
 
@@ -162,8 +170,8 @@ $(document).ready(function() {
 });
 
 $(document).on('click', '#send-message', function() {
-  enterMessage($('.new-message input').val())
-  $('.new-message input').val("")
+  enterMessage($('#new-message input').val())
+  $('#new-message input').val("")
 });
 
 $(document).on('click', '#submit-signup', function() {
@@ -190,7 +198,7 @@ $(document).on('click', '#signin', function() {
 });
 
 $(document).on('click', '#logout', function() {
-  highlight('black');
+  highlight('');
   my_user = null;
   $('#entryway').empty();
   $('#chat-input').empty();
