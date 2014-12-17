@@ -23,13 +23,13 @@
     <button class = "btn btn-primary" id="signup">Sign Up</button>
     <form class="signup-form" action="/signup">
       Username: <input type="text" name="username">
-      Password: <input type="text" name="password">
+      Password: <input type="password" name="password">
       <input class = "btn btn-primary" id="submit-signup" type="button" value="Submit">
     </form>
     <button class = "btn btn-primary" id="signin">Sign In</button>
     <form class="signin-form" action="/signin">
       Username: <input type="text" name="username">
-      Password: <input type="text" name="password">
+      Password: <input type="password" name="password">
       <input class = "btn btn-primary" id="submit-signin" type="button" value="Submit">
     </form>
   </div>
@@ -58,13 +58,13 @@
 </script>
 
 <script>
-var my_user;
+//var my_user;
 
 function enterMessage(new_message){
   $.ajax({
   type: 'POST',
-  url: 'http://localhost:4567/chats',//'http://chat.api.mks.io/chats',
-  data:{'apiToken' : $('.panel.panel-default').attr('id'), 'message': new_message}
+  url: '/chats',//'http://chat.api.mks.io/chats',
+  data:{'apiToken' : localStorage.apiToken, 'message': new_message}
   }).success(function () {
   });
 }
@@ -72,7 +72,7 @@ function enterMessage(new_message){
 function getChats(){
   $.ajax({
   type: 'GET',
-  url: 'http://localhost:4567/chats',//'http://chat.api.mks.io/chats'
+  url: '/chats',//'http://chat.api.mks.io/chats'
   }).success(function (chats) {
     var source = $("#chat-template").html();
 
@@ -94,7 +94,7 @@ function getChats(){
           $('.panel.panel-info#' + item.id).find('.panel-body').append($img)
         }
 
-        if (item.user == my_user){
+        if (item.user == localStorage.my_user){
           $('.panel.panel-info#' + item.id + ' h4').css('color', 'red');
         }
 
@@ -113,7 +113,7 @@ function loadForms(){
 function highlight(color){
   $( '.panel.panel-info h4' ).each(function( t) {
       var len = $(this).text().length
-      if ($(this).text().substr(0,len-2) == my_user){
+      if ($(this).text().substr(0,len-2) == localStorage.my_user){
         $(this).css('color', color.toString());
       }
   });
@@ -122,7 +122,7 @@ function highlight(color){
 function signIn(username, password){
   $.ajax({
   type: 'POST',
-  url: 'http://localhost:4567/signin', //'http://chat.api.mks.io/signin',
+  url: '/signin', //'http://chat.api.mks.io/signin',
   data:{'username' : username, 'password':password}
   }).success(function (result) {
     var source = $("#user-info-template").html();
@@ -130,10 +130,10 @@ function signIn(username, password){
     var template = Handlebars.compile(source);
     
     var myNewHTML = template({
-        id : result["apiToken"],
         u: username
     });
-    my_user = username;
+    localStorage.my_user = username;
+    localStorage.apiToken = result["apiToken"];
     highlight('red');
     $('#entryway').empty();
     $('#entryway').prepend(myNewHTML);
@@ -146,7 +146,7 @@ function signIn(username, password){
 function signUp(username, password){
   $.ajax({
   type: 'POST',
-  url: 'http://localhost:4567/signup', //'http://chat.api.mks.io/signup',
+  url: '/signup', //'http://chat.api.mks.io/signup',
   data:{'username' : username, 'password':password}
   }).success(function () {
      $( "form.signup-form" ).hide()
@@ -155,13 +155,25 @@ function signUp(username, password){
 }
 
 function checkURL(url) {
-    return(url.match(/\.(jpeg|jpg|gif|png)$/) != null);
+    return(url.match(/\.(jpeg|jpg|gif|png|gifv)$/) != null);
 }
 
 $(document).ready(function() {
-  loadForms()
-  $( ".signup-form" ).hide()
-  $( ".signin-form" ).hide()
+  if (!localStorage.my_user){
+    loadForms()
+    $( ".signup-form" ).hide()
+    $( ".signin-form" ).hide()
+  }
+  else{
+    var source = $("#user-info-template").html();
+    var template = Handlebars.compile(source);
+    var myNewHTML = template({
+        u: localStorage.my_user
+    });
+    $('#entryway').prepend(myNewHTML);
+    var addme = $("#chat-textbox").html();
+    $('#chat-input').append(addme);
+  }
   getChats()
   interval = setInterval(getChats, 5000);
 });
@@ -196,7 +208,8 @@ $(document).on('click', '#signin', function() {
 
 $(document).on('click', '#logout', function() {
   highlight('');
-  my_user = null;
+  localStorage.my_user = null;
+  localStorage.apiToken = null;
   $('#entryway').empty();
   $('#chat-input').empty();
   loadForms()

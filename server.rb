@@ -4,12 +4,11 @@ require 'json'
 require 'base64'
 
 
+set :bind, '0.0.0.0'
 
-
-
-  before do
-    @db = PG.connect(host: 'localhost', dbname: 'chatitude_dev')
-  end
+before do
+   @db = PG.connect(host: 'localhost', dbname: 'chatitude_dev')
+end
 
 get '/' do
   send_file 'public/index.html'
@@ -17,7 +16,6 @@ end
 
 post '/signup' do
   #params = JSON.parse request.body.read
-
   if (params['username'] && params['password'])
     exists = @db.exec("SELECT * FROM users WHERE username = $1",[params['username']]).first
 
@@ -28,14 +26,18 @@ post '/signup' do
       return status 200
     end
   end
-  return status 401
+  return status 400
 end
 
 post '/signin' do
+
   headers['Content-Type'] = 'application/json'
 
     username = params['username']
     password = params['password']
+
+    puts "#{username} signed in!"
+    puts "Username : [#{params['username']}], Password : [#{params['password']}]"
 
     # TODO: Grab user by username from database and check password
     owner = @db.exec("SELECT * FROM users WHERE username = $1",[params['username']]).first
@@ -56,10 +58,10 @@ get '/chats' do
     return params['since']#where time > since
   else
     chats = @db.exec("SELECT id,message,name AS user,time FROM chats ORDER BY time DESC LIMIT 10").to_a
-    puts "Chats is #{chats}"
     chats.each do |v|
       v['id'] =  v['id'].to_i
     end
+    chats = chats.reverse()
     return chats.to_json
   end
 end
