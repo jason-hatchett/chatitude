@@ -12,7 +12,11 @@
 </head>
 <body>
   <div class="container theme-showcase">
-    <div class="page-header"><h2>Chatitude</h2><div id="entryway"></div></div>
+    <div class="page-header">
+      <h2>Chatitude</h2>
+      <hr class="bs-docs-separator">
+      <div id="entryway"></div>
+    </div>
     <div id="chat-input"></div>
     <div id="chat-holder"></div>
   </div>
@@ -22,15 +26,16 @@
   <div id="information">
     <button class = "btn btn-primary" id="signup">Sign Up</button>
     <form class="signup-form" action="/signup">
-      Username: <input type="text" name="username">
-      Password: <input type="password" name="password">
-      <input class = "btn btn-primary" id="submit-signup" type="button" value="Submit">
+      <ul>Username: <input type="text" name="username"></ul>
+      <ul>Password: <input type="password" name="password"></ul>
+      <ul><input class = "btn btn-primary" id="submit-signup" type="button" value="Submit"></ul>
     </form>
+    <hr class="bs-docs-separator">
     <button class = "btn btn-primary" id="signin">Sign In</button>
     <form class="signin-form" action="/signin">
-      Username: <input type="text" name="username">
-      Password: <input type="password" name="password">
-      <input class = "btn btn-primary" id="submit-signin" type="button" value="Submit">
+      <ul>Username: <input type="text" name="username"></ul>
+      <ul>Password: <input type="password" name="password"></ul>
+      <ul><input class = "btn btn-primary" id="submit-signin" type="button" value="Submit"></ul>
     </form>
   </div>
 </script>
@@ -45,7 +50,7 @@
 <script id="chat-textbox" type="text/x-handlebars-template">
   <div class="panel panel-success" id = "new-message">
     <div class="panel-heading"><h5>New Message:</h5></div>
-    <div class="panel-body"><input type="text" size="50" >
+    <div class="panel-body"><input type="text">
     <button class = "btn btn-primary" id="send-message">Send Message</button></div>
   </div>
 </script>
@@ -66,6 +71,7 @@ function enterMessage(new_message){
   url: '/chats',//'http://chat.api.mks.io/chats',
   data:{'apiToken' : localStorage.apiToken, 'message': new_message}
   }).success(function () {
+    getChats()
   });
 }
 
@@ -159,7 +165,7 @@ function checkURL(url) {
 }
 
 $(document).ready(function() {
-  if (!localStorage.my_user){
+  if (localStorage.my_user == null){
     loadForms()
     $( ".signup-form" ).hide()
     $( ".signin-form" ).hide()
@@ -208,8 +214,7 @@ $(document).on('click', '#signin', function() {
 
 $(document).on('click', '#logout', function() {
   highlight('');
-  localStorage.my_user = null;
-  localStorage.apiToken = null;
+  localStorage.clear();
   $('#entryway').empty();
   $('#chat-input').empty();
   loadForms()
