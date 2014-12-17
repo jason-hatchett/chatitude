@@ -50,8 +50,10 @@
 <script id="chat-textbox" type="text/x-handlebars-template">
   <div class="panel panel-success" id = "new-message">
     <div class="panel-heading"><h5>New Message:</h5></div>
-    <div class="panel-body"><input type="text">
-    <button class = "btn btn-primary" id="send-message">Send Message</button></div>
+      <div class="panel-body">
+        <textarea id ="message-text-field" type="text"></textarea>
+        <button class = "btn btn-primary" id="send-message">Send Message</button>
+      </div>
   </div>
 </script>
 
@@ -116,6 +118,25 @@ function loadForms(){
  
 }
 
+function loadChat(username){
+  var source = $("#user-info-template").html();
+
+    var template = Handlebars.compile(source);
+    
+    var myNewHTML = template({
+        u: username
+    });
+    localStorage.my_user = username;
+    highlight('red');
+    $('#entryway').empty();
+    $('#entryway').prepend(myNewHTML);
+
+    var addme = $("#chat-textbox").html();
+    $('#chat-input').append(addme);
+    $("#message-text-field").width($("#message-text-field").parent().width()-140);
+    //$(#send-message).center()
+}
+
 function highlight(color){
   $( '.panel.panel-info h4' ).each(function( t) {
       var len = $(this).text().length
@@ -131,21 +152,10 @@ function signIn(username, password){
   url: '/signin', //'http://chat.api.mks.io/signin',
   data:{'username' : username, 'password':password}
   }).success(function (result) {
-    var source = $("#user-info-template").html();
 
-    var template = Handlebars.compile(source);
-    
-    var myNewHTML = template({
-        u: username
-    });
-    localStorage.my_user = username;
-    localStorage.apiToken = result["apiToken"];
-    highlight('red');
-    $('#entryway').empty();
-    $('#entryway').prepend(myNewHTML);
+    loadChat(username)
+    localStorage.apiToken = apiToken;
 
-    var addme = $("#chat-textbox").html();
-    $('#chat-input').append(addme);    
   });
 }
 
@@ -171,14 +181,7 @@ $(document).ready(function() {
     $( ".signin-form" ).hide()
   }
   else{
-    var source = $("#user-info-template").html();
-    var template = Handlebars.compile(source);
-    var myNewHTML = template({
-        u: localStorage.my_user
-    });
-    $('#entryway').prepend(myNewHTML);
-    var addme = $("#chat-textbox").html();
-    $('#chat-input').append(addme);
+   loadChat(localStorage.my_user)
   }
   getChats()
   interval = setInterval(getChats, 5000);
